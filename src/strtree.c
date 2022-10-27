@@ -1210,6 +1210,48 @@ static PyObject* STRtree_dwithin(STRtreeObject* self, PyObject* args) {
 
 #endif  // GEOS_SINCE_3_10_0
 
+
+static PyObject* STRtree_serialize(STRtreeObject* self, PyObject* Py_UNUSED(args)) {
+  // extern void GEOS_DLL GEOSSTRtree_iterate_r(
+  //   GEOSContextHandle_t handle,
+  //   GEOSSTRtree *tree,
+  //   GEOSQueryCallback callback,
+  //   void *userdata);
+  int size;
+  npy_intp i = 0;
+  npy_intp n = self->count;
+  tree_geom_vec_t geoms;
+  PyArrayObject* result = NULL;
+  GeometryObject* geom = NULL;
+
+  if (self->ptr == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "Tree is uninitialized");
+    return NULL;
+  }
+  GEOS_INIT_THREADS;
+  GEOSSTRtree_iterate_r(ctx, self->ptr, query_callback, &geoms);
+  GEOS_FINISH_THREADS;
+
+  size = kv_size(geoms);
+  npy_intp dims[1] = {size};
+
+  result = (PyArrayObject*)PyArray_SimpleNew(1, dims, NPY_OBJECT);
+  if (result == NULL) {
+    PyErr_SetString(PyExc_RuntimeError, "could not allocate numpy array");
+    kv_destroy(geoms);
+    return NULL;
+  }
+
+  for (i = 0; i < size; i++) {
+    geom = *kv_A(geoms, i);
+    Py_INCREF(geom);
+    *(npy_intp*)PyArray_GETPTR1(result, i) = geom;
+  }
+
+  kv_destroy(geoms);
+  return (PyObject*)result;
+}
+
 static PyMemberDef STRtree_members[] = {
     {"_ptr", T_PYSSIZET, offsetof(STRtreeObject, ptr), READONLY,
      "Pointer to GEOSSTRtree"},
@@ -1234,6 +1276,7 @@ static PyMethodDef STRtree_methods[] = {
      "Queries the index for all item(s) in the tree within given distance of search "
      "geometries"},
 #endif     // GEOS_SINCE_3_10_0
+    {"serialize", (PyCFunction)STRtree_serialize, METH_NOARGS, ""},
     {NULL} /* Sentinel */
 };
 
