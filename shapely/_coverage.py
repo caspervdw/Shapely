@@ -196,7 +196,6 @@ def coverage_simplify(geometry, tolerance, *, simplify_boundary=True):
 
 
 @requires_geos("3.14.0")
-@multithreading_enabled
 def coverage_clean(
     geometry,
     *,
