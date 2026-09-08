@@ -1,4 +1,5 @@
 [build-system]
+# NOTE: when updating this table, also update `dependency-groups.build`
 requires = [
     "Cython",
     # Starting with NumPy 1.25, NumPy is (by default) as far back compatible
@@ -34,6 +35,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Scientific/Engineering :: GIS",
 ]
 requires-python = ">=3.11"
@@ -41,8 +43,15 @@ dependencies = [
     "numpy>=1.23",
 ]
 
-[project.optional-dependencies]
-test = [
+[dependency-groups]
+build = [
+    "cmake",
+    "Cython",
+    "ninja",
+    "numpy>=1.25,<3",
+    "setuptools>=77.0.3",
+]
+tests = [
     "pytest",
     "pytest-cov",
     "scipy-doctest",
@@ -53,6 +62,11 @@ docs = [
     "sphinx",
     "sphinx-book-theme",
     "sphinx-remove-toctrees",
+]
+dev = [
+    "pre-commit",
+    {include-group = "build"},
+    {include-group = "tests"},
 ]
 
 [project.urls]
@@ -83,6 +97,10 @@ include = ["docs"]
 ignore = ["D000", "D004"]
 allow-long-titles = true
 max-line-length = 79
+
+[tool.pytest.ini_options]
+doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
+xfail_strict = true
 
 [tool.ruff]
 line-length = 88
