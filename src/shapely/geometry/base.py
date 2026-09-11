@@ -913,7 +913,7 @@ class BaseGeometry(shapely.Geometry):
         except (TypeError, ValueError):
             pass
         if isinstance(distance, float) and shapely.lib.is_valid_input_scalar(other):
-            return shapely.lib.dwithin_scalar(self, other, float(distance))
+            return shapely.lib.dwithin_scalar(self, other, distance)
         return _maybe_unpack(shapely.dwithin(self, other, distance))
 
     def equals_exact(self, other, tolerance=0.0, *, normalize=False):
